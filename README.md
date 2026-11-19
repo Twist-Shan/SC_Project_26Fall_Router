@@ -171,3 +171,12 @@ python -m pytest -q tests
 ```
 
 The tests cover derivatives, EM ascent, row and pair-count equivalence, restart iteration counts, routing probabilities, prompt grouping, training-only feature transforms and tied evaluation scores. Core probability models are in `mixbt/`, experiment entry points are in `experiments/`, and scripts for obtaining the data are in `data/`.
+
+## Restart averaging and pair-specific correction
+
+The 29-feature semantic EM reference keeps the start with the best training objective. The alternative in `mixbt/restarts.py` averages predictions from the same three fits. A separately selectable intercept for each unordered pair is ridge-shrunk toward zero. The comparison uses the five original held-out folds and the saved semantic predictions. Prepare the baseline archive, semantic embedding and 11-coordinate mixture as described above. To reproduce the fixed-probability blend, run the existing semantic family experiment with `--save-predictions tmp/semantic_oof.npz` first.
+
+~~~powershell
+python -s experiments/restart_offsets.py --reference ../arena-router-reference/results/nested
+python -s experiments/restart_family_pool.py --family tmp/semantic_oof.npz
+~~~

@@ -89,3 +89,9 @@ Thumbs.db
 results/arena_menus/*
 !results/arena_menus/triangles.csv
 !results/arena_menus/partial_menus.csv
+
+!results/restart_offsets/
+results/restart_offsets/*
+!results/restart_offsets/scores.csv
+!results/restart_offsets/folds.csv
+!results/restart_offsets/family_pool.csv
