@@ -79,3 +79,12 @@ def test_response_covariates_keep_observation_level_solver():
         reference = model._mstep_pref(bd, gamma, *params)
         for left, right in zip(fast, reference):
             np.testing.assert_array_equal(left, right)
+
+
+def test_polish_iterations_belong_to_the_selected_restart():
+    W, R = make_params(7, 2, 4, rng=53)
+    d = simulate(900, W, R, rng=71)
+    model = StyleMixtureBT(K=2, style=None, n_init=3, seed=89, max_iter=4, polish_all=True)
+    model.fit(d["F"], d["a"], d["b"], d["y"])
+    assert model.n_iter_polish_ > 0
+    assert model.n_iter_em_ + model.n_iter_polish_ == len(model.history_.objective)

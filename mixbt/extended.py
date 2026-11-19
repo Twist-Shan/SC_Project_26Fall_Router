@@ -320,13 +320,14 @@ class StyleMixtureBT:
                 self._polish(F, bd)
                 out = (self.W_, self.R_, self.B_, self.history_)
                 out[-1].n_em = n_em
+                out[-1].n_polish = self.n_iter_polish_
             if self.verbose:
                 print(f"  start {att}: obj {out[-1].objective[-1]:.3f}")
             if best is None or out[-1].objective[-1] > best[-1].objective[-1]:
                 best = out
         self.W_, self.R_, self.B_, self.history_ = best
         self.n_iter_em_ = getattr(self.history_, "n_em", len(self.history_.objective))
-        self.n_iter_polish_ = 0
+        self.n_iter_polish_ = getattr(self.history_, "n_polish", 0)
         if self.polish and self.K > 1 and not self.polish_all:
             self._polish(F, bd)
         self.loglik_ = self.loglik(F, a, b, y, D)

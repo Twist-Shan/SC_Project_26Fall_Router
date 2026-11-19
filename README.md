@@ -25,7 +25,7 @@ python experiments/sim_experiments.py S1
 python experiments/em_benchmark.py B1
 ```
 
-To study which comparisons are needed for routing, run `python experiments/coverage_study.py`. It trains on a connected path of 7 pairs or all 28 pairs among 8 candidates, at two levels of skill separation. Each setting uses 20 paired simulation replicates. Both the mixture and the global Bradley–Terry ranking are evaluated on the full candidate set. **Routing regret** is the difference in true mean win probability between the oracle choice and the fitted router's choice, averaged over new prompts. The script writes replicate-level metrics and a summary with Monte Carlo standard errors for regret to `results/coverage_study_*.csv`.
+To study which comparisons are needed for routing, run `python experiments/coverage_study.py`. It trains on a connected path of 7 pairs or all 28 pairs among 8 candidates, at two levels of skill separation. Each setting uses 20 paired simulation replicates. Both the mixture and the global Bradley–Terry ranking are evaluated on the full candidate set. **Routing regret** is the difference in true mean win probability between the oracle choice and the fitted router's choice, averaged over new prompts. For example, under weak separation, broadening coverage from 7 pairs to all 28 reduced the mixture's mean regret from 0.0253 to 0.0085 at the same training budget of 2,400 votes. [Summary and Monte Carlo standard errors](results/coverage_study_summary.csv) · [Replicate results](results/coverage_study_runs.csv)
 
 For the Arena evaluation, download the [Arena human-preference dataset](https://huggingface.co/datasets/lmarena-ai/arena-human-preference-55k) and extract its routing fields. The evaluation uses the first prompt and the two candidate identities to predict the final recorded preference in a decisive battle. Outer folds keep identical normalised first prompts together. Feature transforms and hyperparameter selection use training data.
 
@@ -40,6 +40,15 @@ For a small smoke run, use `python experiments/arena_nested.py --quick --rows 15
 
 After preparing the Arena input, run `python experiments/edge_mstep_benchmark.py` for the matched skill-update benchmark. With 31,773 training votes, 1,225 unordered pairs, 64 candidates and 6 components, the median paired speedup over seven repetitions was 10.08×. Median times were 74.7 ms using vote rows and 7.3 ms using pair counts. The one-time pair indexing took 3.6 ms. Across the seven runs, the largest held-out probability difference was below 4 × 10⁻¹⁶. These timings cover one skill update with fixed responsibilities. The script also measures a control with one vote per pair. [Timing data](results/edge_mstep_benchmark.csv)
 
+The complete-fit benchmark times estimation of the global prior, EM and the final L-BFGS refinement on the same training fold. Each implementation receives the same initial parameters and precomputed prompt features. Run both component counts with
+
+```sh
+python experiments/edge_fit_benchmark.py --components 2
+python experiments/edge_fit_benchmark.py --components 6
+```
+
+For two components, the median paired full-fit speedup was 1.16× across three repetitions. With the six components selected on this fold, the paired speedups were 0.90×, 1.17× and 1.24×. Both paths used 30 EM iterations and 319 L-BFGS iterations in the six-component fit. Their maximum probability difference across 7,943 held-out votes was 6.26 × 10⁻⁶ or less. [Two-component timings](results/edge_fit_benchmark.csv) · [Six-component timings](results/edge_fit_benchmark_k6.csv)
+
 ## Verification
 
 ```sh
@@ -47,4 +56,4 @@ python -m pip install pytest
 python -m pytest -q tests
 ```
 
-The tests cover derivatives, EM ascent, routing probabilities, prompt grouping, training-only feature transforms and tied evaluation scores. Core probability models are in `mixbt/`, experiment entry points are in `experiments/`, and scripts for obtaining the data are in `data/`.
+The tests cover derivatives, EM ascent, row and pair-count equivalence, restart iteration counts, routing probabilities, prompt grouping, training-only feature transforms and tied evaluation scores. Core probability models are in `mixbt/`, experiment entry points are in `experiments/`, and scripts for obtaining the data are in `data/`.

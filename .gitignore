@@ -10,6 +10,8 @@ data/*
 results/*
 !results/.gitkeep
 !results/edge_mstep_benchmark.csv
+!results/edge_fit_benchmark.csv
+!results/edge_fit_benchmark_k6.csv
 !results/coverage_study_runs.csv
 !results/coverage_study_summary.csv
 figures/
