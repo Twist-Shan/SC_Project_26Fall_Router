@@ -84,3 +84,8 @@ figures/
 *.npz
 .DS_Store
 Thumbs.db
+
+!results/arena_menus/
+results/arena_menus/*
+!results/arena_menus/triangles.csv
+!results/arena_menus/partial_menus.csv
