@@ -9,6 +9,9 @@ data/*
 !data/*.py
 results/*
 !results/.gitkeep
+!results/edge_mstep_benchmark.csv
+!results/coverage_study_runs.csv
+!results/coverage_study_summary.csv
 figures/
 .env
 .env.*

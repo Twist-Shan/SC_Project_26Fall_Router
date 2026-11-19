@@ -1,20 +1,23 @@
 """Train and query a small synthetic prompt-aware router."""
 import numpy as np
 
-from mixbt import MixtureBT, make_params, simulate
+from mixbt import StyleMixtureBT, simulate
 
 
 def main():
-    n_models, n_domains, n_features = 5, 2, 4
-    weights, skills = make_params(n_models, n_domains, n_features, rng=17)
+    # LLMs 0 and 1 specialise in opposite domains; LLM 2 is a generalist.
+    weights = np.array([[0.0, 2.0], [0.0, 0.0]])
+    skills = np.array([[1.6, -1.6], [-1.6, 1.6], [0.0, 0.0]])
     train = simulate(1800, weights, skills, rng=43)
-    new = simulate(4, weights, skills, rng=89)
-    router = MixtureBT(K=n_domains, lam_W=0.1, lam_R=0.1, max_iter=60, seed=97)
-    router.fit(train["F"], train["a"], train["b"], train["y"], M=n_models)
-    candidates = np.arange(n_models)
-    choices, scores = router.route(new["F"], candidates=candidates)
-    for index, (choice, candidate_scores) in enumerate(zip(choices, scores), start=1):
-        print(f"Prompt {index}: LLM {choice}, estimated mean win probability {candidate_scores.max():.3f}")
+    router = StyleMixtureBT(K=2, style=None, lam_R=2.0, max_iter=60, seed=97)
+    router.fit(train["F"], train["a"], train["b"], train["y"], M=len(skills))
+
+    # Each example has an intercept and one observed synthetic prompt coordinate.
+    coordinates = [-2.0, -1.0, 1.0, 2.0]
+    features = np.column_stack([np.ones(len(coordinates)), coordinates])
+    choices, scores = router.route(features)
+    for x, choice, row in zip(coordinates, choices, scores):
+        print(f"x = {x:+.1f}   selected LLM {choice}   estimated mean win probability {row[choice]:.3f}")
 
 
 if __name__ == "__main__":

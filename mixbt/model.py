@@ -73,8 +73,9 @@ class PairData:
     """
 
     def __init__(self, a, b, y, M):
-        a = np.asarray(a)
-        b = np.asarray(b)
+        # Form u * M + v in the platform index dtype even for compact input IDs.
+        a = np.asarray(a, dtype=np.intp)
+        b = np.asarray(b, dtype=np.intp)
         y = np.asarray(y, dtype=float)
         u = np.minimum(a, b)
         v = np.maximum(a, b)
@@ -118,6 +119,8 @@ def weighted_bt_newton(u, v, N, Wn, M, lam=0.0, r0=None, tol=1e-9, max_iter=100,
         s = expit(d)
         res = Wn - N * s
         g = np.bincount(u, res, M) - np.bincount(v, res, M) - lam * (r - pr)
+        if np.max(np.abs(g)) < tol:
+            break
         h = N * s * (1 - s)
         H = np.zeros((M, M))
         np.add.at(H, (u, u), h)
@@ -128,8 +131,6 @@ def weighted_bt_newton(u, v, N, Wn, M, lam=0.0, r0=None, tol=1e-9, max_iter=100,
         # H is the negative Hessian (PSD). Add J to fix the null direction 1.
         step = np.linalg.solve(H + J, g)
         step -= step.mean()
-        if np.max(np.abs(g)) < tol:
-            break
         t = 1.0
         while True:
             r_new = r + t * step

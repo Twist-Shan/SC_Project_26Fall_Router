@@ -28,13 +28,14 @@ and conditional penalised-curvature uncertainty approximations.
 from __future__ import annotations
 
 import time
+from functools import cached_property
 
 import numpy as np
 import scipy.sparse as sp
 from scipy.optimize import minimize
 from scipy.special import expit, log_expit
 
-from .model import FitHistory, log_gate, logsumexp
+from .model import FitHistory, PairData, log_gate, logsumexp, weighted_bt_newton
 
 
 def bt_loglik(eta, y):
@@ -56,6 +57,11 @@ class BattleData:
         vals = np.tile([1.0, -1.0], self.n)
         inc = sp.csr_matrix((vals, (rows, cols)), shape=(self.n, M))
         self.X = sp.hstack([inc, sp.csr_matrix(self.D)]).tocsr()  # n x (M + q)
+
+    @cached_property
+    def pairs(self):
+        """Index unordered candidate pairs once, across all EM steps and restarts."""
+        return PairData(self.a, self.b, self.y, self.M)
 
 
 def component_newton(bd: BattleData, w, r, beta, prior, lam, fit_beta=True, offset=None,
@@ -116,6 +122,8 @@ class StyleMixtureBT:
     domain-specific style covariates.
 
     style  : None | 'domain' | 'shared'
+    aggregate_pairs : use exact weighted edge counts in the skill M-step when
+             there are no per-battle response covariates. False uses vote rows.
     anneal : None or increasing temperatures in (0, 1) for deterministic
              annealing EM (tempered E-step gamma propto (pi p)^tau).
     """
@@ -123,7 +131,8 @@ class StyleMixtureBT:
     def __init__(self, K, lam_W=3.0, lam_R=50.0, lam_B=10.0, style="domain", max_iter=150,
                  tol=1e-7, n_init=2, init="random", anneal=None, polish=True, seed=0,
                  w_maxiter=30, prior_lam=(0.1, 0.01), verbose=False, accel=None, aa_m=5,
-                 n_short=20, short_iter=15, polish_all=False):
+                 n_short=20, short_iter=15, polish_all=False, aggregate_pairs=True):
+        self.aggregate_pairs = aggregate_pairs
         self.accel, self.aa_m, self.n_short, self.short_iter = accel, aa_m, n_short, short_iter
         self.polish_all = polish_all
         self.K, self.lam_W, self.lam_R, self.lam_B = K, lam_W, lam_R, lam_B
@@ -199,6 +208,17 @@ class StyleMixtureBT:
 
     def _mstep_pref(self, bd, gamma, R, B):
         R, B = R.copy(), B.copy()
+        if bd.q == 0 and getattr(self, "aggregate_pairs", True):
+            # The E-step uses each prompt separately. Its weights can now be
+            # summed because all battles on an oriented edge have one skill logit.
+            pairs = bd.pairs
+            mass, wins = pairs.aggregate(gamma)
+            for k in range(self.K):
+                R[:, k] = weighted_bt_newton(
+                    pairs.u, pairs.v, mass[:, k], wins[:, k], bd.M,
+                    self.lam_R, R[:, k], tol=1e-8, max_iter=30, prior=self.prior_[0],
+                )
+            return R, B
         lam = (self.lam_R, self.lam_B)
         shared = self.style == "shared" and bd.q
         for k in range(self.K):

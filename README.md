@@ -2,6 +2,8 @@
 
 A prompt-aware router learns which LLM response people tend to prefer for a given request. It fits a finite mixture of Bradley–Terry comparisons to pairwise votes. Prompt features determine the mixture weights, and each component estimates a separate vector of LLM skills. For a new prompt the router selects the candidate with the highest predicted average win probability against the other candidates.
 
+EM assigns each vote a probability of belonging to each component. With those probabilities fixed, the skill update uses the weighted numbers of comparisons and wins for each component and unordered LLM pair. The implementation caches the pair indices and reuses them across EM iterations. It uses individual rows for the prompt-weight update and for skill fits that include response-specific covariates.
+
 ## Run a synthetic example
 
 Use Python 3.12 in a fresh virtual environment. From the repository root run
@@ -23,6 +25,8 @@ python experiments/sim_experiments.py S1
 python experiments/em_benchmark.py B1
 ```
 
+To study which comparisons are needed for routing, run `python experiments/coverage_study.py`. It trains on a connected path of 7 pairs or all 28 pairs among 8 candidates, at two levels of skill separation. Each setting uses 20 paired simulation replicates. Both the mixture and the global Bradley–Terry ranking are evaluated on the full candidate set. **Routing regret** is the difference in true mean win probability between the oracle choice and the fitted router's choice, averaged over new prompts. The script writes replicate-level metrics and a summary with Monte Carlo standard errors for regret to `results/coverage_study_*.csv`.
+
 For the Arena evaluation, download the [Arena human-preference dataset](https://huggingface.co/datasets/lmarena-ai/arena-human-preference-55k) and extract its routing fields. The evaluation uses the first prompt and the two candidate identities to predict the final recorded preference in a decisive battle. Outer folds keep identical normalised first prompts together. Feature transforms and hyperparameter selection use training data.
 
 ```sh
@@ -33,6 +37,8 @@ python experiments/arena_descriptive.py --results-dir results/nested --threads 2
 ```
 
 For a small smoke run, use `python experiments/arena_nested.py --quick --rows 1500 --output results/smoke --threads 1`. A completed fold can be reused with the same data, source fingerprints and configuration. For a changed configuration, use a new output directory.
+
+After preparing the Arena input, run `python experiments/edge_mstep_benchmark.py` for the matched skill-update benchmark. With 31,773 training votes, 1,225 unordered pairs, 64 candidates and 6 components, the median paired speedup over seven repetitions was 10.08×. Median times were 74.7 ms using vote rows and 7.3 ms using pair counts. The one-time pair indexing took 3.6 ms. Across the seven runs, the largest held-out probability difference was below 4 × 10⁻¹⁶. These timings cover one skill update with fixed responsibilities. The script also measures a control with one vote per pair. [Timing data](results/edge_mstep_benchmark.csv)
 
 ## Verification
 
