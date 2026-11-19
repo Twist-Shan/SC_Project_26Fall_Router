@@ -18,6 +18,30 @@ The example generates training battles, fits the router and prints selected cand
 
 ## Experiments
 
+### What is a prompt worth?
+
+A fixed policy chooses one candidate for every prompt. A prompt-aware policy can change that choice when different candidates excel at different tasks. In simulation we know each candidate's true chance of beating a random opponent. This lets us measure both the gain available to an oracle that sees the prompt and the fraction a router learns from pairwise votes.
+
+| Domain specialisation | Oracle gain over the best fixed candidate | Fitted EM gain over the best fixed candidate |
+| --- | ---: | ---: |
+| None | 0.00 | −1.12 |
+| Weak | 5.18 | 4.44 |
+| Strong | 16.18 | 15.94 |
+
+Units are extra expected wins per 100 comparisons with a uniformly sampled opponent among the other seven candidates. Each row averages 20 independent datasets with 2,400 training votes and 8,000 test prompts. Under strong specialisation, the EM mixture picks the true best candidate on 93.9% of test prompts. A prompt-aware scalar BT fit, with the same features and number of parameters, obtains 15.97 extra wins. The full results include both probability-mixture and scalar-score data-generating mechanisms and paired Monte Carlo standard errors. [All simulation settings](results/prompt_value/summary.csv) · [Paired comparisons](results/prompt_value/contrasts.csv)
+
+Which candidate is best can also depend on which opponents are available. A three-candidate example holds the prompt fixed and changes the eligible candidates from A/B to A/B/C. In the cyclic population, A wins the two-candidate comparison and B has the highest three-candidate mean win probability. The best fixed scalar order loses 4.44 expected wins per 100 when the two candidate sets occur equally often. With 3,600 training votes, the fitted probability mixture recovers both choices in 18/20 replicates, empirical pair frequencies in 17/20 and scalar BT in 0/20. All three recover both choices in 20/20 replicates when the domains share a common ranking. [Menu experiment](results/menu_reversal/summary.csv)
+
+```sh
+python experiments/prompt_value_study.py
+python experiments/menu_reversal.py
+python experiments/plot_prompt_value.py
+```
+
+The plot can be regenerated directly from the committed aggregate results. It places the known value of the prompt in simulation beside the observed paired preference gain on Arena.
+
+### Candidate-set coverage and estimation
+
 The simulation experiments write tables and traces to `results/`. S1 varies the sample size and measures parameter recovery and routing regret. B1 compares optimisers on the same synthetic battles and initial parameters.
 
 ```sh
@@ -34,6 +58,19 @@ The five-fold evaluation predicts the final recorded human preference in a decis
 ```sh
 python data/download_data.py
 python data/prepare_routing_input.py
+```
+
+### Does the fitted router use the prompt?
+
+For the 29-feature semantic EM fit, replace each test prompt's mixing weights with the mean weights of the training battles in the same fold. Candidate identities, domain skills and votes stay paired across the two predictions. On all 39,716 held-out comparisons the prompt-aware decision agrees with **65.74%** of human votes, versus **64.75%** with fixed weights. The gain is **0.99 percentage points**, with a paired 95% interval of 0.72–1.28. In the predefined group where training-fold global BT assigns 45%–55% win probability, agreement rises from 51.33% to 54.92% on 8,631 pairs, a **3.59-point** gain (2.50–4.73). The permutation check reassigns prompts within fold and unordered candidate pair. Both analyses preserve the candidate pair and evaluate the actual vote. [Matched 11-coordinate results](results/prompt_weight_control/contrasts_pca11.csv) · [32-coordinate check](results/prompt_weight_control/contrasts_pca32.csv)
+
+Using the same embeddings, component counts, penalties and three starting points, a scalar BT model that mixes domain skills before the logistic link reaches 65.63% accuracy, compared with 65.74% for the probability mixture. The paired difference is 0.12 points (0.01–0.22). Corresponding log losses are 0.61427 and 0.61431. [Direct link comparison](results/semantic_link/comparison.csv)
+
+For these two checks, prepare the frozen embeddings and both semantic EM fits using the commands below, then run
+
+```sh
+python experiments/prompt_weight_control.py --reference ../arena-router-reference/results/nested
+python experiments/semantic_link_comparison.py --reference ../arena-router-reference/results/nested
 ```
 
 ### Reproduce the five-fold reference and pooled router
@@ -99,6 +136,13 @@ python experiments/plot_semantic_gains.py
 ```
 
 ## Training and routing time
+
+An equal-budget comparison follows six methods from each of three common initial points on a 35,756-vote Arena design. The trace records accepted iterates at 5, 10 and 20 seconds of single-thread CPU time. The time-to-target comparison uses a feasible objective recorded in the historical benchmark and two tolerances per training vote. A method that misses the tolerance within the budget remains in the results. This benchmark measures optimisation of a fixed training objective. Absolute times depend on the machine. [Budget results](results/solver_budget/budgets.csv) · [Target attainment](results/solver_budget/targets.csv)
+
+```sh
+python experiments/arena_prepare.py data/train.csv
+python experiments/solver_budget.py
+```
 
 After preparing the Arena input, run `python experiments/edge_mstep_benchmark.py` for the matched skill-update benchmark. With 31,773 training votes, 1,225 unordered pairs, 64 candidates and 6 components, the median paired speedup over seven repetitions was 10.08×. Median times were 74.7 ms using vote rows and 7.3 ms using pair counts. The one-time pair indexing took 3.6 ms. Across the seven runs, the largest held-out probability difference was below 4 × 10⁻¹⁶. These timings cover one skill update with fixed responsibilities. The script also measures a control with one vote per pair. [Timing data](results/edge_mstep_benchmark.csv)
 

@@ -1,0 +1,121 @@
+rep,condition,seed,method,choice_ab,choice_abc,mean_regret,both_correct,target_pair_mae
+0,cyclic,1944214907,probability mixture,A,B,0.0,True,0.028626387449687336
+0,cyclic,1944214907,scalar BT,B,B,0.04487804878048779,False,0.10400010065392612
+0,cyclic,1944214907,target pair frequencies,A,B,0.0,True,0.03121789426849488
+0,shared-order,1944214907,probability mixture,A,A,0.0,True,0.004301946012034634
+0,shared-order,1944214907,scalar BT,A,A,0.0,True,0.00461637870599052
+0,shared-order,1944214907,target pair frequencies,A,A,0.0,True,0.017825223709423226
+1,cyclic,324162301,probability mixture,A,B,0.0,True,0.010181123001753093
+1,cyclic,324162301,scalar BT,B,B,0.04487804878048779,False,0.10413083185008719
+1,cyclic,324162301,target pair frequencies,A,B,0.0,True,0.011317396756057085
+1,shared-order,324162301,probability mixture,A,A,0.0,True,0.004222163676834996
+1,shared-order,324162301,scalar BT,A,A,0.0,True,0.004549382816924852
+1,shared-order,324162301,target pair frequencies,A,A,0.0,True,0.007747970515668816
+2,cyclic,945106163,probability mixture,B,B,0.04487804878048779,False,0.04670940747604065
+2,cyclic,945106163,scalar BT,B,B,0.04487804878048779,False,0.1044742793428257
+2,cyclic,945106163,target pair frequencies,B,B,0.04487804878048779,False,0.04691501840391534
+2,shared-order,945106163,probability mixture,A,A,0.0,True,0.020433941490772305
+2,shared-order,945106163,scalar BT,A,A,0.0,True,0.015073187083464576
+2,shared-order,945106163,target pair frequencies,A,A,0.0,True,0.029433847258345303
+3,cyclic,2482605215,probability mixture,A,B,0.0,True,0.027896005355170506
+3,cyclic,2482605215,scalar BT,B,B,0.04487804878048779,False,0.10381266987258585
+3,cyclic,2482605215,target pair frequencies,A,B,0.0,True,0.027969097601423725
+3,shared-order,2482605215,probability mixture,A,A,0.0,True,0.010683361234247327
+3,shared-order,2482605215,scalar BT,A,A,0.0,True,0.019176411529839548
+3,shared-order,2482605215,target pair frequencies,A,A,0.0,True,0.0319260200716713
+4,cyclic,394288924,probability mixture,A,B,0.0,True,0.010259174968827963
+4,cyclic,394288924,scalar BT,B,B,0.04487804878048779,False,0.1041001602008928
+4,cyclic,394288924,target pair frequencies,A,B,0.0,True,0.014512801844436318
+4,shared-order,394288924,probability mixture,A,A,0.0,True,0.011769855414009989
+4,shared-order,394288924,scalar BT,A,A,0.0,True,0.004330490198374874
+4,shared-order,394288924,target pair frequencies,A,A,0.0,True,0.01106472010107514
+5,cyclic,3757279528,probability mixture,A,B,0.0,True,0.020141551972415073
+5,cyclic,3757279528,scalar BT,B,B,0.04487804878048779,False,0.10395358396404906
+5,cyclic,3757279528,target pair frequencies,A,B,0.0,True,0.0246523480160174
+5,shared-order,3757279528,probability mixture,A,A,0.0,True,0.012911137628932515
+5,shared-order,3757279528,scalar BT,A,A,0.0,True,0.014037785566618685
+5,shared-order,3757279528,target pair frequencies,A,A,0.0,True,0.01464469981009501
+6,cyclic,1055130512,probability mixture,A,B,0.0,True,0.007254614558567629
+6,cyclic,1055130512,scalar BT,B,B,0.04487804878048779,False,0.10409361718805797
+6,cyclic,1055130512,target pair frequencies,A,B,0.0,True,0.014512801844436355
+6,shared-order,1055130512,probability mixture,A,A,0.0,True,0.004506834883028277
+6,shared-order,1055130512,scalar BT,A,A,0.0,True,0.0053415732094801065
+6,shared-order,1055130512,target pair frequencies,A,A,0.0,True,0.0063528258465792575
+7,cyclic,3479788009,probability mixture,A,B,0.0,True,0.030625621472859427
+7,cyclic,3479788009,scalar BT,B,B,0.04487804878048779,False,0.10460993498767752
+7,cyclic,3479788009,target pair frequencies,B,B,0.04487804878048779,False,0.0434089714031469
+7,shared-order,3479788009,probability mixture,A,A,0.0,True,0.010507673842674111
+7,shared-order,3479788009,scalar BT,A,A,0.0,True,0.010302561513098904
+7,shared-order,3479788009,target pair frequencies,A,A,0.0,True,0.009406345308371922
+8,cyclic,109835406,probability mixture,A,B,0.0,True,0.018812257375505365
+8,cyclic,109835406,scalar BT,B,B,0.04487804878048779,False,0.10394641498946244
+8,cyclic,109835406,target pair frequencies,A,B,0.0,True,0.025356146098774384
+8,shared-order,109835406,probability mixture,A,A,0.0,True,0.008481446814135022
+8,shared-order,109835406,scalar BT,A,A,0.0,True,0.004975741170786067
+8,shared-order,109835406,target pair frequencies,A,A,0.0,True,0.01036714776653036
+9,cyclic,3030967884,probability mixture,A,B,0.0,True,0.019015225976846
+9,cyclic,3030967884,scalar BT,B,B,0.04487804878048779,False,0.10433889049063651
+9,cyclic,3030967884,target pair frequencies,A,B,0.0,True,0.023440520972373997
+9,shared-order,3030967884,probability mixture,A,A,0.0,True,0.006473436894525138
+9,shared-order,3030967884,scalar BT,A,A,0.0,True,0.012327866402930931
+9,shared-order,3030967884,target pair frequencies,A,A,0.0,True,0.013547671665858537
+10,cyclic,1514157972,probability mixture,A,B,0.0,True,0.012658645442065686
+10,cyclic,1514157972,scalar BT,B,B,0.04487804878048779,False,0.10408646447573411
+10,cyclic,1514157972,target pair frequencies,A,B,0.0,True,0.014512801844436355
+10,shared-order,1514157972,probability mixture,A,A,0.0,True,0.020005362905587337
+10,shared-order,1514157972,scalar BT,A,A,0.0,True,0.021624443854292703
+10,shared-order,1514157972,target pair frequencies,A,A,0.0,True,0.024594948566313946
+11,cyclic,3538240154,probability mixture,A,A,0.044390243902439064,False,0.043882065932607905
+11,cyclic,3538240154,scalar BT,A,A,0.044390243902439064,False,0.10406022334570668
+11,cyclic,3538240154,target pair frequencies,A,A,0.044390243902439064,False,0.04429559519475793
+11,shared-order,3538240154,probability mixture,A,A,0.0,True,0.006906916661521619
+11,shared-order,3538240154,scalar BT,A,A,0.0,True,0.007303344593927415
+11,shared-order,3538240154,target pair frequencies,A,A,0.0,True,0.012025522559233504
+12,cyclic,2815830281,probability mixture,A,B,0.0,True,0.039205065304210286
+12,cyclic,2815830281,scalar BT,B,B,0.04487804878048779,False,0.10404340006334244
+12,cyclic,2815830281,target pair frequencies,A,B,0.0,True,0.04614326740282323
+12,shared-order,2815830281,probability mixture,A,A,0.0,True,0.011676085443565909
+12,shared-order,2815830281,scalar BT,A,A,0.0,True,0.007869119516961379
+12,shared-order,2815830281,target pair frequencies,A,A,0.0,True,0.018659021730046115
+13,cyclic,693960996,probability mixture,A,B,0.0,True,0.04241146546814643
+13,cyclic,693960996,scalar BT,B,B,0.04487804878048779,False,0.10402847935847864
+13,cyclic,693960996,target pair frequencies,A,B,0.0,True,0.04614326740282324
+13,shared-order,693960996,probability mixture,A,A,0.0,True,0.005010931709236721
+13,shared-order,693960996,scalar BT,A,A,0.0,True,0.003856615377933433
+13,shared-order,693960996,target pair frequencies,A,A,0.0,True,0.013683897351936647
+14,cyclic,3836183632,probability mixture,A,B,0.0,True,0.03367066293848601
+14,cyclic,3836183632,scalar BT,B,B,0.04487804878048779,False,0.10408545958171528
+14,cyclic,3836183632,target pair frequencies,A,B,0.0,True,0.0360037212312422
+14,shared-order,3836183632,probability mixture,A,A,0.0,True,0.01037487802692146
+14,shared-order,3836183632,scalar BT,A,A,0.0,True,0.010458319708223566
+14,shared-order,3836183632,target pair frequencies,A,A,0.0,True,0.01036714776653036
+15,cyclic,460315750,probability mixture,A,B,0.0,True,0.025947951084803966
+15,cyclic,460315750,scalar BT,B,B,0.04487804878048779,False,0.10406222664537394
+15,cyclic,460315750,target pair frequencies,A,B,0.0,True,0.029559519475791756
+15,shared-order,460315750,probability mixture,A,A,0.0,True,0.012900267816985092
+15,shared-order,460315750,scalar BT,A,A,0.0,True,0.010798799044031915
+15,shared-order,460315750,target pair frequencies,A,A,0.0,True,0.018786026167581626
+16,cyclic,3115953710,probability mixture,A,B,0.0,True,0.016079842223105028
+16,cyclic,3115953710,scalar BT,B,B,0.04487804878048779,False,0.10399738516352623
+16,cyclic,3115953710,target pair frequencies,A,B,0.0,True,0.021971443595032985
+16,shared-order,3115953710,probability mixture,A,A,0.0,True,0.004462807508432272
+16,shared-order,3115953710,scalar BT,A,A,0.0,True,0.0044785531882815715
+16,shared-order,3115953710,target pair frequencies,A,A,0.0,True,0.00870877297382718
+17,cyclic,253065801,probability mixture,A,B,0.0,True,0.020543668155383
+17,cyclic,253065801,scalar BT,B,B,0.04487804878048779,False,0.10414462308808974
+17,cyclic,253065801,target pair frequencies,A,B,0.0,True,0.01776159851150751
+17,shared-order,253065801,probability mixture,A,A,0.0,True,0.012715056865335953
+17,shared-order,253065801,scalar BT,A,A,0.0,True,0.014544179294827245
+17,shared-order,253065801,target pair frequencies,A,A,0.0,True,0.015342272144639827
+18,cyclic,148309381,probability mixture,A,B,0.0,True,0.014194909194517805
+18,cyclic,148309381,scalar BT,B,B,0.04487804878048779,False,0.10424004699211052
+18,cyclic,148309381,target pair frequencies,A,B,0.0,True,0.02528819318043929
+18,shared-order,148309381,probability mixture,A,A,0.0,True,0.014645683652107944
+18,shared-order,148309381,scalar BT,A,A,0.0,True,0.007083035110819831
+18,shared-order,148309381,target pair frequencies,A,A,0.0,True,0.018659021730046115
+19,cyclic,556611395,probability mixture,A,B,0.0,True,0.03980821729432941
+19,cyclic,556611395,scalar BT,B,B,0.04487804878048779,False,0.10405167539946593
+19,cyclic,556611395,target pair frequencies,A,B,0.0,True,0.03950976823201069
+19,shared-order,556611395,probability mixture,A,A,0.0,True,0.008151718839743008
+19,shared-order,556611395,scalar BT,A,A,0.0,True,0.008706958908921517
+19,shared-order,556611395,target pair frequencies,A,A,0.0,True,0.015342272144639827
