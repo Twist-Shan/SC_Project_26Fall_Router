@@ -14,6 +14,15 @@ results/*
 !results/edge_fit_benchmark_k6.csv
 !results/coverage_study_runs.csv
 !results/coverage_study_summary.csv
+!results/score_reuse_benchmark.csv
+!results/routing_latency.csv
+!results/lexical_refinement/
+results/lexical_refinement/*
+!results/lexical_refinement/metrics.csv
+!results/lexical_refinement/contrasts.csv
+!results/lexical_refinement/folds.csv
+!results/lexical_refinement/tuning.csv
+!results/lexical_refinement/branch_timing.csv
 figures/
 .env
 .env.*

@@ -35,7 +35,7 @@ import scipy.sparse as sp
 from scipy.optimize import minimize
 from scipy.special import expit, log_expit
 
-from .model import FitHistory, PairData, log_gate, logsumexp, weighted_bt_newton
+from .model import FitHistory, PairData, _domain_strength, log_gate, logsumexp, weighted_bt_newton
 
 
 def bt_loglik(eta, y):
@@ -62,6 +62,18 @@ class BattleData:
     def pairs(self):
         """Index unordered candidate pairs once, across all EM steps and restarts."""
         return PairData(self.a, self.b, self.y, self.M)
+
+    @cached_property
+    def score_pair_index(self):
+        """Lookups for repeated directed pairs and their two possible outcomes."""
+        if self.q or not np.all((self.y == 0) | (self.y == 1)):
+            return None
+        keys = self.a.astype(np.intp, copy=False) * self.M + self.b
+        unique, pair = np.unique(keys, return_inverse=True)
+        if 2 * len(unique) >= self.n:
+            return None
+        outcome = pair + (self.y == 0) * len(unique)
+        return unique // self.M, unique % self.M, pair, outcome
 
 
 def component_newton(bd: BattleData, w, r, beta, prior, lam, fit_beta=True, offset=None,
@@ -406,19 +418,31 @@ class StyleMixtureBT:
             B = np.zeros((K, q))
         return W, R, B
 
+    def _score_terms(self, bd, R, B):
+        index = bd.score_pair_index
+        if index is None:
+            eta = self._eta(bd, R, B)
+            return bt_loglik(eta, bd.y), expit(eta)
+        u, v, pair, outcome = index
+        eta = R[u] - R[v]
+        log_win = log_expit(eta)
+        # The second block uses the same log-sigmoid identity as bt_loglik.
+        log_outcome = np.vstack((log_win, log_win - eta))
+        return log_outcome[outcome], expit(eta)[pair]
+
     def score(self, F, bd, W, R, B):
         """Exact gradient of the penalised observed-data log-likelihood via
         Fisher's identity (report, Lemma 1), and its value."""
         K, M = self.K, self.M
         lp = log_gate(F, W)
-        eta = self._eta(bd, R, B)
-        L = lp + bt_loglik(eta, bd.y)
+        component_ll, win = self._score_terms(bd, R, B)
+        L = lp + component_ll
         ll_i = logsumexp(L, axis=1)
         gamma = np.exp(L - ll_i[:, None])
         mask = np.ones(F.shape[1])
         mask[0] = 0
         gW = (gamma - np.exp(lp)).T @ F - self.lam_W * W * mask
-        ge = gamma * (bd.y[:, None] - expit(eta))
+        ge = gamma * (bd.y[:, None] - win)
         r0, b0 = self.prior_
         gR = np.zeros((M, K))
         np.add.at(gR, bd.a, ge)
@@ -441,13 +465,21 @@ class StyleMixtureBT:
         hist = self.history_
         t0 = time.perf_counter()
         last = hist.time[-1] if hist.time else 0.0
+        evaluated_at, evaluated_value = None, None
 
         def f_and_g(th):
+            nonlocal evaluated_at, evaluated_value
             g, val = self.score(F, bd, *self._unpack(th, p))
+            evaluated_at, evaluated_value = th.copy(), val
             return -val, -g
 
         def cb(th):
-            hist.objective.append(self.score(F, bd, *self._unpack(th, p))[1])
+            # L-BFGS normally reports the point just evaluated in its line search.
+            if np.array_equal(th, evaluated_at):
+                value = evaluated_value
+            else:
+                _, value = self.score(F, bd, *self._unpack(th, p))
+            hist.objective.append(value)
             hist.time.append(last + time.perf_counter() - t0)
 
         res = minimize(f_and_g, self._pack(self.W_, self.R_, self.B_), jac=True, method="L-BFGS-B",
@@ -522,12 +554,7 @@ class StyleMixtureBT:
 
     def domain_strength(self, candidates=None):
         """v_{m,k} = mean_{j in C, j != m} sigma(r_mk - r_jk) at neutral style."""
-        C = np.arange(self.M) if candidates is None else np.asarray(candidates)
-        Rc = self.R_[C]
-        P = expit(Rc[:, None, :] - Rc[None, :, :])
-        idx = np.arange(len(C))
-        P[idx, idx, :] = 0.0
-        return P.sum(1) / (len(C) - 1)
+        return _domain_strength(self, candidates)
 
     def route(self, F, candidates=None):
         """Select by expected win rate at neutral response covariates.

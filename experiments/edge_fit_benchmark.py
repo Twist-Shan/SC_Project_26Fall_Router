@@ -21,6 +21,23 @@ from arena_pipeline import PromptFeatures, grouped_folds, load_data
 from mixbt import StyleMixtureBT
 
 
+def load_fold_problem(components):
+    data = load_data()
+    train = grouped_folds(data["groups"], seed=1729) != 0
+    test = ~train
+    gate = PromptFeatures(seed=1729).fit(data["text"][train]).transform(data["text"])["G"]
+    F, held = gate[train], gate[test]
+    a, b, y = (data[k][train] for k in ("a", "b", "y"))
+    cfg = dict(K=components, style=None, lam_R=50., lam_W=3., n_init=1, tol=1e-7, max_iter=30,
+               polish_all=True)
+    model = StyleMixtureBT(**cfg, aggregate_pairs=False)
+    model.M = data["M"]
+    bd = model._bd(a, b, y, None)
+    model._fit_prior(bd)
+    start = model._init(F, bd, np.random.default_rng(53))
+    return cfg, start, F, (a, b, y), held, (data["a"][test], data["b"][test]), bd.M
+
+
 def run():
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--components", type=int, choices=[2, 6], default=6)
@@ -28,28 +45,16 @@ def run():
     args = parser.parse_args()
     default_name = "edge_fit_benchmark_k6.csv" if args.components == 6 else "edge_fit_benchmark.csv"
     output = args.output or ROOT / "results" / default_name
-    data = load_data()
-    train = grouped_folds(data["groups"], seed=1729) != 0
-    test = ~train
-    gate = PromptFeatures(seed=1729).fit(data["text"][train]).transform(data["text"])["G"]
-    F, held = gate[train], gate[test]
-    a, b, y = (data[k][train] for k in ("a", "b", "y"))
-    cfg = dict(K=args.components, style=None, lam_R=50., lam_W=3., n_init=1, tol=1e-7, max_iter=30,
-               polish_all=True)
-    model = StyleMixtureBT(**cfg, aggregate_pairs=False)
-    model.M = data["M"]
-    bd = model._bd(a, b, y, None)
-    model._fit_prior(bd)
-    start = model._init(F, bd, np.random.default_rng(53))
+    cfg, start, F, (a, b, y), held, test_pairs, M = load_fold_problem(args.components)
     rows = []
     for rep in range(3):
         fits, seconds, predictions = {}, {}, {}
         for aggregate in ((False, True) if rep % 2 == 0 else (True, False)):
             model = StyleMixtureBT(**cfg, aggregate_pairs=aggregate)
             t0 = perf_counter()
-            fits[aggregate] = model.fit(F, a, b, y, M=bd.M, init_params=start)
+            fits[aggregate] = model.fit(F, a, b, y, M=M, init_params=start)
             seconds[aggregate] = perf_counter() - t0
-            predictions[aggregate] = model.predict_proba(held, data["a"][test], data["b"][test])
+            predictions[aggregate] = model.predict_proba(held, *test_pairs)
         row_fit, edge_fit = fits[False], fits[True]
         rows.append(dict(repetition=rep + 1, n_train=len(a), n_test=len(held), K=cfg["K"],
                          row_seconds=seconds[False], edge_seconds=seconds[True],

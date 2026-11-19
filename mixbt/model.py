@@ -64,6 +64,21 @@ def component_loglik(R, a, b, y):
     return ld - (1.0 - y)[:, None] * d
 
 
+def _domain_strength(model, candidates):
+    """Reuse the last opponent average while its ordered skill rows agree."""
+    skills = model.R_ if candidates is None else model.R_[np.asarray(candidates)]
+    cached = getattr(model, "_strength_cache", None)
+    if cached is None or not np.array_equal(skills, cached[0]):
+        p = expit(skills[:, None, :] - skills[None, :, :])
+        idx = np.arange(len(skills))
+        p[idx, idx, :] = 0.0
+        strength = p.sum(axis=1) / (len(skills) - 1)
+        cached = (skills.copy(), strength)
+        model._strength_cache = cached
+    # domain_strength is public; the caller can modify the returned matrix.
+    return cached[1].copy()
+
+
 class PairData:
     """Pre-computed sparse structures for the Bradley--Terry M-step.
 
@@ -694,12 +709,7 @@ class MixtureBT:
     def domain_strength(self, candidates=None):
         """v_{m,k}: average win prob. of m against the other candidates in
         domain k (proposal, Sec. 4.3). Returns |C| x K."""
-        C = np.arange(self.M) if candidates is None else np.asarray(candidates)
-        Rc = self.R_[C]  # |C| x K
-        P = expit(Rc[:, None, :] - Rc[None, :, :])  # |C| x |C| x K
-        idx = np.arange(len(C))
-        P[idx, idx, :] = 0.0
-        return P.sum(axis=1) / (len(C) - 1)
+        return _domain_strength(self, candidates)
 
     def route(self, F, candidates=None, cost=None, lam_cost=0.0):
         """Routing score S_m(x) = sum_k pi_k(x) v_{m,k} (minus cost)."""
