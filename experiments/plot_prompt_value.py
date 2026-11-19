@@ -8,9 +8,9 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-INK = "#233f4b"
-BLUE = "#366c80"
-LIGHT = "#c4dce0"
+INK = "#2D2D32"
+CORAL = "#F28E8E"
+SKY = "#8EC5E8"
 
 
 def main():
@@ -36,10 +36,10 @@ def main():
     x = np.arange(len(simulation))
     error = dict(ecolor=INK, capsize=2, elinewidth=.8, capthick=.8)
     left.bar(x - .17, 100 * simulation.prompt_value_mean, width=.31,
-             color=LIGHT, edgecolor=BLUE, linewidth=.65, label="Oracle",
+             color=SKY, edgecolor=INK, linewidth=.65, label="Oracle",
              yerr=100 * simulation.prompt_value_sem, error_kw=error)
     left.bar(x + .17, 100 * simulation.gain_over_best_fixed_mean, width=.31,
-             color=BLUE, label="Fitted EM",
+             color=CORAL, edgecolor=INK, linewidth=.65, label="Fitted EM",
              yerr=100 * simulation.gain_over_best_fixed_sem, error_kw=error)
     left.legend(loc="upper left", bbox_to_anchor=(0, 1.01), ncol=1, frameon=False,
                 borderaxespad=.1, handlelength=1.25, labelspacing=.22, fontsize=8.2)
@@ -59,7 +59,7 @@ def main():
     points = 100 * arena.accuracy_gain.to_numpy()
     ends = 100 * arena[["gain_lo", "gain_hi"]].to_numpy().T
     right.errorbar(points, y, xerr=[points - ends[0], ends[1] - points],
-                   fmt="o", color=BLUE, markersize=4.8, capsize=3., elinewidth=1.2)
+                   fmt="o", color=INK, markerfacecolor=CORAL, markersize=5.8, capsize=3., elinewidth=1.2)
     for value, level in zip(points, y):
         right.annotate(f"+{value:.2f}", (value, level), xytext=(0, 6),
                        textcoords="offset points", ha="center", color=INK, fontsize=8.8)

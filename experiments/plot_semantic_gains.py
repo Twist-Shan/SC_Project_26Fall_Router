@@ -32,9 +32,9 @@ def draw(table, path):
     ax.axvline(0, color="#7b858b", lw=.9, zorder=0)
     for i, row in table.iterrows():
         y = len(table) - 1 - i
-        color = "#176659" if i in (0, 1) else "#536d80"
-        ax.plot([100 * row.lo, 100 * row.hi], [y, y], color=color, lw=1.6, solid_capstyle="round")
-        ax.scatter(100 * row.gain, y, s=35, marker="D" if i == 0 else "o", c=color, zorder=3)
+        color = "#F28E8E" if i in (0, 1) else "#8EC5E8"
+        ax.plot([100 * row.lo, 100 * row.hi], [y, y], color="#695F67", lw=1.3, solid_capstyle="round")
+        ax.scatter(100 * row.gain, y, s=35, marker="D" if i == 0 else "o", c=color, edgecolors="#514953", linewidths=.7, zorder=3)
     labels = [f"{r.stratum}  ({r.n:,})" for r in table.itertuples()]
     ax.set_yticks(np.arange(len(table))[::-1], labels)
     ax.set_ylim(-.48, len(table) - .45)
