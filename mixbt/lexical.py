@@ -92,13 +92,15 @@ class LexicalBT:
             C=self.C, fit_intercept=False, solver="liblinear", dual=True,
             max_iter=1500, tol=1e-5, random_state=43,
         ).fit(design, y, sample_weight=weights)
+        self._set_coefficients(self.model_.coef_.ravel(), M)
+        return self
+
+    def _set_coefficients(self, coef, M):
         self.M_ = M
-        coef = self.model_.coef_.ravel()
         offset_start = len(coef) - M * M
         self.items_ = coef[:offset_start].reshape(M, -1)
         offsets = 0.5 * coef[offset_start:].reshape(M, M)
         self.offsets_ = offsets - offsets.T
-        return self
 
     def fit(self, prompts, a, b, y, M):
         return self.fit_design(self.pair_design(self.encode(prompts), a, b, M), y, M)

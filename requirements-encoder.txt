@@ -1,0 +1,10 @@
+# Optional frozen-encoder environment, Python 3.10.20.
+# Install PyTorch 2.5.1 for the chosen device as described in README.md.
+numpy==2.2.6
+pandas==2.3.3
+scipy==1.15.3
+scikit-learn==1.7.2
+transformers==4.48.3
+huggingface-hub==0.36.2
+tokenizers==0.21.4
+safetensors==0.8.0

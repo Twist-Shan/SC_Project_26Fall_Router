@@ -45,9 +45,12 @@ The pooled router gives equal weight to the EM mixture's pairwise win probabilit
 | Global Bradley–Terry ranking | 64.732% | 0.619477 |
 | EM mixture | 65.203% | 0.616697 |
 | Lexical branch | 65.392% | 0.616656 |
-| Equal probability pool | 65.374% | 0.616032 |
+| Equal pool, lexical branch and original EM mixture | 65.374% | 0.616032 |
+| EM mixture with a frozen semantic representation (32 PCs) | 65.633% | 0.614977 |
+| Family-shared semantic branch | 65.754% | 0.613361 |
+| Equal pool, semantic branch and original EM mixture | **65.787%** | **0.612418** |
 
-Relative to the mixture, the pool gained 0.171 percentage points in accuracy (paired 95% bootstrap interval 0.000 to 0.342) and reduced log loss by 0.000665 (95% interval 0.000310 to 0.001017). These intervals condition on the fitted out-of-fold predictions. [All methods](results/lexical_refinement/metrics.csv) · [Paired intervals](results/lexical_refinement/contrasts.csv) · [Outer-fold results](results/lexical_refinement/folds.csv)
+Relative to the original mixture, the lexical pool gained 0.171 percentage points in accuracy (paired 95% bootstrap interval 0.000 to 0.342) and reduced log loss by 0.000665 (95% interval 0.000310 to 0.001017). These intervals condition on the fitted out-of-fold predictions. [Lexical methods](results/lexical_refinement/metrics.csv) · [Paired intervals](results/lexical_refinement/contrasts.csv)
 
 To reproduce the reported comparison, generate the reference predictions using the original five-fold source snapshot. Run these commands from the repository root after preparing the Arena data above. The 12 reference implementation files match the SHA-256 values recorded in the evaluation protocol. [Reference commit](https://github.com/Twist-Shan/SC_Project_26Fall_Router/tree/bfac1d6901f61783e263859ee6f2a4a8348d38c8)
 
@@ -60,6 +63,40 @@ python experiments/lexical_benchmark.py
 ```
 
 The reference command writes `protocol.json` and `oof_predictions.npz` locally. The pooled evaluation checks battle order, exact first prompts and fold assignments, then reports paired differences with 1,000 prompt-group bootstrap draws. To evaluate the current mixture from scratch, run `python experiments/arena_nested.py --output results/nested --threads 2 --bootstrap 1000`. For a small smoke run, pass `--quick --rows 1500 --output results/smoke`. Run `python experiments/arena_descriptive.py --results-dir results/nested --threads 2` for descriptive summaries. Use a fresh output directory if the data, source or settings change.
+
+### Semantic routing and the tie ablation
+
+The semantic pool averages the original EM mixture with a second predictor that uses the prompt's words and a frozen multilingual sentence embedding. This branch estimates candidate-specific prompt effects and shares semantic effects within LLM families. Each training fold learns its own principal components and cluster centres. The ridge penalty and semantic feature scale are selected on grouped inner validation data. The deployment API is `SemanticMixtureRouter` in `mixbt.semantic`.
+
+The semantic pool corrected 1,284 of the lexical pool's choices and introduced 1,120 new errors on the logged pairs. The net gain of 164 votes corresponds to **0.413 percentage points** (paired 95% interval 0.163 to 0.658). Log loss fell by **0.003614** (0.002930 to 0.004229). Among the 8,631 pairs where global BT predicted 45%–55%, accuracy rose from 53.85% to 55.64%, a net gain of 154. The other two prespecified groups contributed +13 and −3 correct choices. [Paired results](results/semantic_refinement/contrasts.csv) · [All three groups](results/semantic_refinement/difficulty.csv) · [Decision counts](results/decision_changes.csv)
+
+Two ablations isolate different parts of the method. Replacing the original mixture's topic features with 32 embedding PCs raised EM accuracy from 65.203% to 65.633% at the same fold-specific component counts and penalties. A supplementary fit with 11 PCs matched the original mixture's 29 input columns in every fold and reached 65.744% accuracy (log loss 0.614312). The semantic pool correctly predicted 17 more votes than this matched-dimension EM fit, a difference of 0.043 percentage points (95% interval −0.227 to 0.295). Separately, a three-outcome Davidson model used eligible training ties to estimate a lexical branch and predicted decisive outcomes at evaluation. Its pool reached 65.339% and 0.615928. Compared with the lexical pool, the paired 95% intervals for both differences included zero. [32-PC mixture](results/semantic_mixture/contrasts.csv) · [11-PC comparison](results/semantic_mixture_capacity/contrasts.csv) · [Paired decision counts](results/decision_changes.csv) · [Tie ablation](results/tie_refinement/contrasts.csv)
+
+#### Prepare frozen embeddings
+
+Encoding uses a separate optional environment. The recorded GPU run used Python 3.10.20, PyTorch 2.5.1 with CUDA 12.1 and Transformers 4.48.3. The encoder checks hashes for five model and tokenizer files from revision `e8f8c211226b894fcb81acc59f3b34ba3efd5f42`, truncates to 128 tokens, mean-pools with the attention mask and normalises the 384-dimensional vectors. The 39,716 battles contained 36,580 distinct first-prompt strings. [Pinned MiniLM model](https://huggingface.co/sentence-transformers/paraphrase-multilingual-MiniLM-L12-v2/tree/e8f8c211226b894fcb81acc59f3b34ba3efd5f42) · [PyTorch distributions](https://pytorch.org/get-started/previous-versions/#v251)
+
+```sh
+conda create -y -n arena-router-encoder python=3.10.20
+conda run -n arena-router-encoder python -m pip install torch==2.5.1 --index-url https://download.pytorch.org/whl/cu121
+conda run -n arena-router-encoder python -m pip install -r requirements-encoder.txt
+conda run -n arena-router-encoder python experiments/prepare_sentence_embeddings.py --device cuda --batch-size 96
+```
+
+A CPU PyTorch build and `--device cpu` use FP32. The recorded GPU run used mixed precision with FP32 pooling. The output is `data/semantic_minilm.npz`. With an offline model copy, pass `--model-dir` to the encoder.
+
+#### Reproduce the semantic and tie results
+
+After preparing the historical five-fold reference, the lexical tuning CSV and the embeddings above, run the following from the repository root using the main Python environment. The NPZ files used for the decision audit are local per-battle predictions. The plot reads the published aggregate CSVs and can be regenerated directly from a clean checkout.
+
+```sh
+python experiments/semantic_refinement.py --reference ../arena-router-reference/results/nested --save-predictions results/semantic_refinement/local_oof.npz
+python experiments/semantic_mixture.py --reference ../arena-router-reference/results/nested --components 32 --workers 3
+python experiments/semantic_mixture.py --reference ../arena-router-reference/results/nested --components 11 --workers 3
+python experiments/tie_refinement.py --reference ../arena-router-reference/results/nested --save-predictions results/tie_refinement/local_oof.npz
+python experiments/decision_changes.py --reference ../arena-router-reference/results/nested --semantic-oof results/semantic_refinement/local_oof.npz --semantic-mixture-oof results/semantic_mixture/local_oof.npz --capacity-matched-oof results/semantic_mixture_capacity/local_oof.npz --tie-oof results/tie_refinement/local_oof.npz
+python experiments/plot_semantic_gains.py
+```
 
 ## Training and routing time
 
